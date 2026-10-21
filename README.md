@@ -76,35 +76,70 @@ EXIT;
 6. curl -I http://localhost
 # Expected outcomes:
 Component
-
 Expected result
-
 VM
-
 Running and accessible over SSH
-
 Apache
-
 active
-
 MySQL
-
 active
-
 PHP
-
 Version displayed and MySQL extension available
-
 HTTP
-
 Successful response, usually 200 OK
-
 Database login
-
 Successful authentication as appuser
-
 Database access
-
 appdb selected successfully
+# Install the PHP extensions WordPress needs
+sudo apt update
+sudo apt install php-mysql php-curl php-gd php-imagick php-mbstring php-xml php-zip php-intl
+sudo systemctl restart apache2
+# Verify PHP and the MySQL extension:
+php -v
+php -m | grep -Ei 'mysqli|curl|gd|imagick|mbstring|xml|zip|intl'
+# Create the WordPress database
+sudo mysql
+CREATE DATABASE wordpress
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'wpuser'@'localhost'
+  IDENTIFIED BY 'REPLACE_WITH_A_STRONG_PASSWORD';
+
+GRANT ALL PRIVILEGES ON wordpress.*
+  TO 'wpuser'@'localhost';
+
+EXIT;
+# Download the latest stable WordPress release
+1. First, identify the latest stable release on the official WordPress GitHub tags page . Avoid alpha, beta, and release-candidate tags.
+2. Then download the corresponding stable release archive from the official WordPress release archive .
+3. Deploy the extracted files into /var/www/html only after checking whether that directory contains anything you need to preserve.
+# Configure WordPress
+1. WordPress needs database connection settings in wp-config.php:
+2. Database name: wordpress
+3. Database user: wpuser
+4. Database password: the private password you created
+5. Database host: localhost
+Use the official WordPress configuration documentation  to configure the file safely.
+Then verify that Apache has permission to read the WordPress files and write only where needed. Avoid making the entire installation world-writable.
+# Complete the installation
+Open this address in your browser, substituting your VM's IP address:
+http://YOUR_VM_IP/
+Follow the WordPress setup wizard to create the administrator account with a separate strong password.
+# Verify the result
+Check the service and configuration:
+sudo systemctl status apache2 --no-pager
+sudo systemctl status mysql --no-pager
+sudo apache2ctl configtest
+You should see Apache report Syntax OK, and both services should be running.
+# END
+
+
+
+
+
+
+
 
 # END
